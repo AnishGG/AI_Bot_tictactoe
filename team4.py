@@ -1,5 +1,6 @@
 import random
 from time import time
+import copy
 
 INF = 1e10
 class Team4:
@@ -23,26 +24,46 @@ class Team4:
 			if self.time_out == 1:
 				break
 
-		return ret
+		print board.print_board()
+		print ret
+		return ret[1][0], ret[1][1]
 
 
 	def alpha_beta(self, board, alpha, beta, depth, old_move, flag):
 
 		available_cells = board.find_valid_move_cells(old_move)
 		random.shuffle(available_cells)
+		# print available_cells
 
 		if (flag == 'x'):
+			tmp = copy.deepcopy(board.block_status)
 			ans = -INF, available_cells[0]
 			for cell in available_cells:
+				if (time() - self.time_start >= self.time_limit):
+					self.time_out = 1
+					break
+				# print cell
 				board.update(old_move, cell, flag)
-				if (depth >= self.depth):
+				# print "--------------------------------------------------BEFORE-----------------------------------------"
+				# print board.print_board()
+				if board.find_terminal_state()[0] == 'o':
+					board.board_status[cell[0]][cell[1]] = '-'
+					board.block_status = copy.deepcopy(tmp)
+				elif board.find_terminal_state()[0] == 'x':
+					board.board_status[cell[0]][cell[1]] = '-'
+					board.block_status = copy.deepcopy(tmp)
+					ans = INF, cell
+					return ans
+				elif (depth >= self.depth):
 					ret = self.heuristic(board, old_move)
 				else:
 					ret = self.alpha_beta(board, alpha, beta, depth+1, cell, 'o')
 				board.board_status[cell[0]][cell[1]] = '-'
+				board.block_status = copy.deepcopy(tmp)
+				# print "--------------------------------------------------AFTER-----------------------------------------"
+				# print board.print_board()
 				if (ret > ans[0]):
 					ans = ret, cell
-				ans = max(ans, ret)
 				if (ans[0] >= beta):
 					break
 				alpha = max(alpha, ans[0])
@@ -50,15 +71,34 @@ class Team4:
 			return ans
 
 		elif (flag == 'o'):
+			tmp = copy.deepcopy(board.block_status)
 			ans = INF, available_cells[0]
 			for cell in available_cells:
+				if (time() - self.time_start >= self.time_limit):
+					self.time_out = 1
+					break
+				# print cell
 				board.update(old_move, cell, flag)
-				if (depth >= self.depth):
+				# print "--------------------------------------------------BEFORE-----------------------------------------"
+				# print board.print_board()
+				if board.find_terminal_state()[0] == 'x':
+					board.board_status[cell[0]][cell[1]] = '-'
+					board.block_status = copy.deepcopy(tmp)
+				elif board.find_terminal_state()[0] == 'o':
+					board.board_status[cell[0]][cell[1]] = '-'
+					board.block_status = copy.deepcopy(tmp)
+					ans = INF, cell
+					return ans
+				elif (depth >= self.depth):
 					ret = self.heuristic(board, old_move)
 				else:
 					ret = self.alpha_beta(board, alpha, beta, depth+1, cell, 'x')
 				board.board_status[cell[0]][cell[1]] = '-'
-				ans = min(ans, ret)
+				board.block_status = copy.deepcopy(tmp)
+				# print "--------------------------------------------------AFTER-----------------------------------------"
+				# print board.print_board()
+				if (ret < ans[0]):
+					ans = ret, cell
 				if (ans[0] <= alpha):
 					break
 				beta = min(beta, ans[0])
