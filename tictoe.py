@@ -50,5 +50,5 @@ class Team4:
 				ans = min(ans, ret)
 				if (ans <= alpha):
 					return ans
-				alpha = min(alpha, ans)
+				beta = min(beta, ans)
 			return ans
