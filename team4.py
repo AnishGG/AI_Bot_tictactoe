@@ -54,9 +54,9 @@ class Team4:
 					board.block_status = copy.deepcopy(tmp)
 					ans = INF, cell
 					return ans
-				elif (depth >= self.depth):
+				elif (depth >= self.depth and len(board.find_valid_move_cells(old_move)) > 0):
 					ret = self.heuristic(board, old_move)
-				else:
+				elif (depth < self.depth):
 					ret = self.alpha_beta(board, alpha, beta, depth+1, cell, 'o')
 				board.board_status[cell[0]][cell[1]] = '-'
 				board.block_status = copy.deepcopy(tmp)
@@ -89,9 +89,9 @@ class Team4:
 					board.block_status = copy.deepcopy(tmp)
 					ans = INF, cell
 					return ans
-				elif (depth >= self.depth):
+				elif (depth >= self.depth and len(board.find_valid_move_cells(old_move)) > 0):
 					ret = self.heuristic(board, old_move)
-				else:
+				elif (depth < self.depth):
 					ret = self.alpha_beta(board, alpha, beta, depth+1, cell, 'x')
 				board.board_status[cell[0]][cell[1]] = '-'
 				board.block_status = copy.deepcopy(tmp)
