@@ -121,20 +121,34 @@ class Team4:
 				block_goodness += self.calc_per_block(board, old_move, i, j)
                 return block_goodness
 
+        def cal_diam_weight(self, centre_x, centre_y, board_status):
+                # For a single diamond
+                cx = centre_x
+                cy = centre_y
+                mp = self.mapping
+                a = mp[board_status[cx][cy+1]] 
+                b = mp[board_status[cx][cy-1]] 
+                c = mp[board_status[cx + 1][cy]] 
+                d = mp[board_status[cx - 1][cy]]
+                diam_weight = 10*(a + b + c + d)
+                if(a == -1 or b == -1 or c == -1 or d == -1):
+                    diam_weight = 0
+                return diam_weight
+
 	def calc_per_block(self, board, old_move, block_x, block_y):
 
 		# For checking how good a row/col is
 		row_weight = [10, 10, 10, 10]
 		col_weight = [10, 10, 10, 10]
 		for i in xrange(4):
-			for j in yrange(4):
+			for j in xrange(4):
 				mapping_val = self.mapping[board.board_status[4*block_x+i][4*block_y+j]]
                     # Yes, the below line will help in the overall case
                                 # row_weight += mapping_val * self.cell_weight			probably will only help in case of overall block
                                 if(row_weight[i] == 10):
-                                        row_weight += mapping_val * 10
+                                        row_weight[i] += mapping_val * 10
                                 if(col_weight[j] == 10):
-                                        col_weight += mapping_val * 10
+                                        col_weight[j] += mapping_val * 10
 				if (mapping_val == -1):
 					row_weight[i] = 0
 					col_weight[j] = 0
@@ -142,25 +156,31 @@ class Team4:
 				col_weight[j] *= 3
 
 		# For checking how good diamond state is
+                diam_weight = [[0, 0], [0, 0]]
+                for i in range(2):
+                    for j in range(2):
+                        diam_weight[i][j] = self.cal_diam_weight(4*block_x + 1 + i, 4*block_y + 1 + j, board.board_status)
 
+                return 0    ##############################have to change return for now ##################
 
-	def calc_as_whole(self, board):
+	def calc_as_whole(self, board, old_move):
 
 		# For checking how good a row/col is
 		row_weight = [10, 10, 10, 10]
 		col_weight = [10, 10, 10, 10]
 		for i in xrange(4):
-			for j in yrange(4):
-				mapping_val = self.mapping[board.block_status[i][sj]]
+			for j in xrange(4):
+				mapping_val = self.mapping[board.block_status[i][j]]
 				row_weight += mapping_val * self.cell_weight			# probably will only help in case of overall block
                                 if(row_weight[i] == 10):
-                                        row_weight += mapping_val * 10
+                                        row_weight[i] += mapping_val * 10
                                 if(col_weight[j] == 10):
-                                        col_weight += mapping_val * 10
+                                        col_weight[j] += mapping_val * 10
 				if (mapping_val == -1):
 					row_weight[i] = 0
 					col_weight[j] = 0
-				row_weight *= 3
-				col_weight *= 3
+				row_weight[i] *= 3
+				col_weight[j] *= 3
 
 		# For checking how good diamond state is
+                return 0    ##############################have to change return for now ##################
