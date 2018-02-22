@@ -11,6 +11,8 @@ class Team4:
 		self.max_depth = 100
 		self.time_out = 0
 		self.depth = 6
+		self.cell_weight = [6, 4, 4, 6, 4, 3, 3, 4, 4, 3, 3, 4, 6, 4, 4, 6]
+		self.mapping = {'x':1, 'o':-1, 'd':0, '-':0}
 
 	def move(self, board, old_move, flag):
 		
@@ -107,5 +109,55 @@ class Team4:
 			return ans
 
 	def heuristic(self, board, old_move):
+		
+		goodness = 0
+		goodness += self.calc_single_blocks(board, old_move)
+		goodness += self.calc_as_whole(board, old_move)
+		return goodness
 
-		return random.choice(board.find_valid_move_cells(old_move))
+
+	def calc_single_blocks(self, board, old_move):
+		
+		block_goodness = 0
+		for i in xrange(4):
+			for j in xrange(4):
+				block_goodness += self.calc_per_block(board, old_move, i, j)
+
+	def calc_per_block(self, board, old_move, block_x, block_y):
+
+		# For checking how good a row/col is
+		row_weight = [10 10 10 10]
+		col_weight = [10 10 10 10]
+		for i in xrange(4):
+			for j in yrange(4):
+				mapping_val = self.mapping[board.board_status[4*block_x+i][4*block_y+j]]
+				# row_weight += mapping_val * self.cell_weight			probably will only help in case of overall block
+				row_weight += mapping_val * 10
+				col_weight += mapping_val * 10
+				if (mapping_val == -1):
+					row_weight[i] = 0
+					col_weight[j] = 0
+				row_weight *= 3
+				col_weight *= 3
+
+		# For checking how good diamond state is
+
+
+	def calc_as_whole(self, board):
+
+		# For checking how good a row/col is
+		row_weight = [10 10 10 10]
+		col_weight = [10 10 10 10]
+		for i in xrange(4):
+			for j in yrange(4):
+				mapping_val = self.mapping[board.block_status[i][sj]]
+				row_weight += mapping_val * self.cell_weight			# probably will only help in case of overall block
+				row_weight += mapping_val * 10
+				col_weight += mapping_val * 10
+				if (mapping_val == -1):
+					row_weight[i] = 0
+					col_weight[j] = 0
+				row_weight *= 3
+				col_weight *= 3
+
+		# For checking how good diamond state is
