@@ -12,24 +12,26 @@ class Team4:
 		self.time_out = 0
 		self.depth = 6
 		self.cell_weight = [6, 4, 4, 6, 4, 3, 3, 4, 4, 3, 3, 4, 6, 4, 4, 6]
-		self.mapping = {'x':1, 'o':-1, 'd':0, '-':0}
+		self.mapping_x = {'x':1, 'o':-1, 'd':0, '-':0}
+		self.mapping_o = {'x':-1, 'o':1, 'd':0, '-':0}
 
 	def move(self, board, old_move, flag):
 		
 		self.time_start = time()
 		self.time_out = 0
-		ret = random.choice(board.find_valid_move_cells(old_move))
+		bestret = random.choice(board.find_valid_move_cells(old_move))
 
 		for i in xrange(3,self.max_depth+1):
 			self.depth = i
 			ret = self.alpha_beta(board, -INF, INF, 0, old_move, flag)
+			bestret = max(bestret, ret)
 			print "ret at i", i, " is ", ret
 			if self.time_out == 1:
 				break
 
 		print board.print_board()
-		print ret
-		return ret[1][0], ret[1][1]
+		print bestret
+		return bestret[1][0], bestret[1][1]
 
 
 	def alpha_beta(self, board, alpha, beta, depth, old_move, flag):
@@ -65,7 +67,9 @@ class Team4:
 					ans = INF, cell
 					return ans
 				elif (depth >= self.depth and len(board.find_valid_move_cells(old_move)) > 0):
-					ret = self.heuristic(board, old_move), cell
+					ret1 = self.heuristic(board, old_move, 'x'), cell
+					ret2 = self.heuristic(board, old_move, 'o'), cell
+					ret = ret1[0]-ret2[0], cell
 					# board.print_board()
 					# print "ret is ", ret
 				elif (depth < self.depth):
@@ -106,7 +110,9 @@ class Team4:
 					ans = INF, cell
 					return ans
 				elif (depth >= self.depth and len(board.find_valid_move_cells(old_move)) > 0):
-					ret = self.heuristic(board, old_move), cell
+					ret1 = self.heuristic(board, old_move, 'o'), cell
+					ret2 = self.heuristic(board, old_move, 'x'), cell
+					ret = ret1[0]-ret2[0], cell
 					# board.print_board()
 					# print "ret is ", ret					
 				elif (depth < self.depth):
@@ -124,27 +130,31 @@ class Team4:
 			###print "ans is ", ans, " flag ", flag , " depth ", depth
 			return ans
 
-	def heuristic(self, board, old_move):
+	def heuristic(self, board, old_move, flag):
 		goodness = 0
-		goodness += self.calc_single_blocks(board, old_move)
-		goodness += (self.calc_as_whole(board, old_move)*160)
+		goodness += self.calc_single_blocks(board, old_move, flag)
+		goodness += (self.calc_as_whole(board, old_move, flag)*200)
 		# print "goodness is ", goodness
 		return goodness
 
-	def calc_single_blocks(self, board, old_move):
+	def calc_single_blocks(self, board, old_move, flag):
 		
 		block_goodness = 0
 		for i in xrange(4):
 			for j in xrange(4):
-				block_goodness += self.calc_per_block(board, old_move, i, j)
+				block_goodness += self.calc_per_block(board, old_move, i, j, flag)
 		return block_goodness
 
-	def cal_diam_weight(self, centre_x, centre_y, board_status):
+	def cal_diam_weight(self, centre_x, centre_y, board_status, flag):
 		
 		# For a single diamond
 		cx = centre_x
 		cy = centre_y
-		mp = self.mapping
+		mp = {}
+		if (flag == 'x'):
+			mp = self.mapping_x
+		else:
+			mp = self.mapping_o
 		a = mp[board_status[cx][cy+1]] 
 		b = mp[board_status[cx][cy-1]] 
 		c = mp[board_status[cx + 1][cy]] 
@@ -163,7 +173,7 @@ class Team4:
 			diam_weight = 0
 		return diam_weight
 
-	def calc_per_block(self, board, old_move, block_x, block_y):
+	def calc_per_block(self, board, old_move, block_x, block_y, flag):
 
 		ret = 0
 		# For checking how good a row/col is
@@ -171,8 +181,13 @@ class Team4:
 		col_weight = [10, 10, 10, 10]
 		for i in xrange(4):
 			for j in xrange(4):
+				mp = {}
+				if (flag == 'x'):
+					mp = self.mapping_x
+				else:
+					mp = self.mapping_o
 				# print board.board_status[4&block_x+i][4*block_y+j],
-				mapping_val = self.mapping[board.board_status[4*block_x+i][4*block_y+j]]
+				mapping_val = mp[board.board_status[4*block_x+i][4*block_y+j]]
 					# Yes, the below line will help in the overall case
 								# row_weight += mapping_val * self.cell_weight			probably will only help in case of overall block
 				if(row_weight[i] == 10):
@@ -191,7 +206,7 @@ class Team4:
 		diam_weight = [[0, 0], [0, 0]]
 		for i in xrange(2):
 			for j in xrange(2):
-				diam_weight[i][j] = self.cal_diam_weight(4*block_x + 1 + i, 4*block_y + 1 + j, board.board_status)
+				diam_weight[i][j] = self.cal_diam_weight(4*block_x + 1 + i, 4*block_y + 1 + j, board.board_status, flag)
 				# print "diam_weight ", i, j, " is ", diam_weight[i][j]
 				ret += diam_weight[i][j]
 		for i in xrange(3):
@@ -203,7 +218,7 @@ class Team4:
 		return ret   
 
 
-	def calc_as_whole(self, board, old_move):
+	def calc_as_whole(self, board, old_move, flag):
 
 		ret = 0
 		# For checking how good a row/col is
@@ -211,7 +226,12 @@ class Team4:
 		col_weight = [10, 10, 10, 10]
 		for i in xrange(4):
 			for j in xrange(4):
-				mapping_val = self.mapping[board.block_status[i][j]]
+				mp = {}
+				if (flag == 'x'):
+					mp = self.mapping_x
+				else:
+					mp = self.mapping_o
+				mapping_val = mp[board.block_status[i][j]]
 				row_weight += mapping_val * self.cell_weight			# probably will only help in case of overall block
 				if(row_weight[i] == 10):
 					row_weight[i] += mapping_val * 10
@@ -228,7 +248,7 @@ class Team4:
 		diam_weight = [[0, 0], [0, 0]]
 		for i in xrange(2):
 			for j in xrange(2):
-				diam_weight[i][j] = self.cal_diam_weight(i, j, board.block_status)
+				diam_weight[i][j] = self.cal_diam_weight(i, j, board.block_status, flag)
 				ret += diam_weight[i][j]
 		for i in xrange(3):
 			ret += row_weight[i]
