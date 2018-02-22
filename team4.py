@@ -36,7 +36,10 @@ class Team4:
 
 		available_cells = board.find_valid_move_cells(old_move)
 		if (len(available_cells) == 0):
-			return 0
+			if (flag == 'x'):
+				return -INF, (0, 0)
+			else:
+				return INF, (0, 0)
 		random.shuffle(available_cells)
 		# print available_cells
 
