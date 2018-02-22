@@ -70,14 +70,14 @@ class Team4:
 				board.block_status = copy.deepcopy(tmp)
 				# print "--------------------------------------------------AFTER-----------------------------------------"
 				# print board.print_board()
-				print "ret[0] here is ", ret[0]
-				if (ret > ans[0]):
-					print "ret[0] ", ret[0], "cell ", cell
-					ans = ret, cell
+				### print "ret[0] here is ", ret[0]
+				if (ret[0] > ans[0]):
+				##	# print "ret[0] ", ret[0], "cell ", cell
+					ans = ret[0], cell
 				if (ans[0] >= beta):
 					break
 				alpha = max(alpha, ans[0])
-			print "ans is ", ans, " flag ", flag , " depth ", depth
+			### print "ans is ", ans, " flag ", flag , " depth ", depth
 			return ans
 
 		elif (flag == 'o'):
@@ -110,20 +110,20 @@ class Team4:
 				board.block_status = copy.deepcopy(tmp)
 				# print "--------------------------------------------------AFTER-----------------------------------------"
 				# print board.print_board()
-				print "ret[0] here is ", ret[0]
-				if (ret < ans[0]):
-					ans = ret, cell
+			###	print "ret[0] here is ", ret[0]
+				if (ret[0] < ans[0]):
+					ans = ret[0], cell
 				if (ans[0] <= alpha):
 					break
 				beta = min(beta, ans[0])
-				print "ans is ", ans, " flag ", flag , " depth ", depth
-				return ans
+			###print "ans is ", ans, " flag ", flag , " depth ", depth
+			return ans
 
 	def heuristic(self, board, old_move):
 		goodness = 0
 		goodness += self.calc_single_blocks(board, old_move)
 		goodness += (self.calc_as_whole(board, old_move)*160)
-		print "goodness is ", goodness
+		# print "goodness is ", goodness
 		return goodness
 
 	def calc_single_blocks(self, board, old_move):
