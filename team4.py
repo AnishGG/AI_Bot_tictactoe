@@ -43,6 +43,7 @@ class Team4:
 		if (flag == 'x'):
 			tmp = copy.deepcopy(board.block_status)
 			ans = -INF, available_cells[0]
+			ret = -INF, (0, 0)
 			for cell in available_cells:
 				if (time() - self.time_start >= self.time_limit):
 					self.time_out = 1
@@ -83,6 +84,7 @@ class Team4:
 		elif (flag == 'o'):
 			tmp = copy.deepcopy(board.block_status)
 			ans = INF, available_cells[0]
+			ret = INF, (0, 0)
 			for cell in available_cells:
 				if (time() - self.time_start >= self.time_limit):
 					self.time_out = 1
