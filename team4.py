@@ -49,6 +49,7 @@ class Team4:
 				if board.find_terminal_state()[0] == 'o':
 					board.board_status[cell[0]][cell[1]] = '-'
 					board.block_status = copy.deepcopy(tmp)
+					continue;
 				elif board.find_terminal_state()[0] == 'x':
 					board.board_status[cell[0]][cell[1]] = '-'
 					board.block_status = copy.deepcopy(tmp)
@@ -84,6 +85,7 @@ class Team4:
 				if board.find_terminal_state()[0] == 'x':
 					board.board_status[cell[0]][cell[1]] = '-'
 					board.block_status = copy.deepcopy(tmp)
+					continue;
 				elif board.find_terminal_state()[0] == 'o':
 					board.board_status[cell[0]][cell[1]] = '-'
 					board.block_status = copy.deepcopy(tmp)
