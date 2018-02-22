@@ -23,6 +23,7 @@ class Team4:
 		for i in xrange(3,self.max_depth+1):
 			self.depth = i
 			ret = self.alpha_beta(board, -INF, INF, 0, old_move, flag)
+			print "ret at i", i, " is ", ret
 			if self.time_out == 1:
 				break
 
@@ -34,6 +35,8 @@ class Team4:
 	def alpha_beta(self, board, alpha, beta, depth, old_move, flag):
 
 		available_cells = board.find_valid_move_cells(old_move)
+		if (len(available_cells) == 0):
+			return 0
 		random.shuffle(available_cells)
 		# print available_cells
 
@@ -58,19 +61,23 @@ class Team4:
 					ans = INF, cell
 					return ans
 				elif (depth >= self.depth and len(board.find_valid_move_cells(old_move)) > 0):
-					ret = self.heuristic(board, old_move)
+					ret = self.heuristic(board, old_move), cell
+					# board.print_board()
+					# print "ret is ", ret
 				elif (depth < self.depth):
 					ret = self.alpha_beta(board, alpha, beta, depth+1, cell, 'o')
 				board.board_status[cell[0]][cell[1]] = '-'
 				board.block_status = copy.deepcopy(tmp)
 				# print "--------------------------------------------------AFTER-----------------------------------------"
 				# print board.print_board()
+				print "ret[0] here is ", ret[0]
 				if (ret > ans[0]):
+					print "ret[0] ", ret[0], "cell ", cell
 					ans = ret, cell
 				if (ans[0] >= beta):
 					break
 				alpha = max(alpha, ans[0])
-
+			print "ans is ", ans, " flag ", flag , " depth ", depth
 			return ans
 
 		elif (flag == 'o'):
@@ -94,24 +101,29 @@ class Team4:
 					ans = INF, cell
 					return ans
 				elif (depth >= self.depth and len(board.find_valid_move_cells(old_move)) > 0):
-					ret = self.heuristic(board, old_move)
+					ret = self.heuristic(board, old_move), cell
+					# board.print_board()
+					# print "ret is ", ret					
 				elif (depth < self.depth):
 					ret = self.alpha_beta(board, alpha, beta, depth+1, cell, 'x')
 				board.board_status[cell[0]][cell[1]] = '-'
 				board.block_status = copy.deepcopy(tmp)
 				# print "--------------------------------------------------AFTER-----------------------------------------"
 				# print board.print_board()
+				print "ret[0] here is ", ret[0]
 				if (ret < ans[0]):
 					ans = ret, cell
 				if (ans[0] <= alpha):
 					break
 				beta = min(beta, ans[0])
-			return ans
+				print "ans is ", ans, " flag ", flag , " depth ", depth
+				return ans
 
 	def heuristic(self, board, old_move):
 		goodness = 0
 		goodness += self.calc_single_blocks(board, old_move)
-		goodness += self.calc_as_whole(board, old_move)
+		goodness += (self.calc_as_whole(board, old_move)*160)
+		print "goodness is ", goodness
 		return goodness
 
 	def calc_single_blocks(self, board, old_move):
@@ -120,7 +132,7 @@ class Team4:
 		for i in xrange(4):
 			for j in xrange(4):
 				block_goodness += self.calc_per_block(board, old_move, i, j)
-				return block_goodness
+		return block_goodness
 
 	def cal_diam_weight(self, centre_x, centre_y, board_status):
 		
@@ -132,6 +144,7 @@ class Team4:
 		b = mp[board_status[cx][cy-1]] 
 		c = mp[board_status[cx + 1][cy]] 
 		d = mp[board_status[cx - 1][cy]]
+		# print "a b c d", a , b, c, d
 		diam_weight = 10*(a + b + c + d)
 		if (a == 1):
 			diam_weight *= 3
@@ -153,6 +166,7 @@ class Team4:
 		col_weight = [10, 10, 10, 10]
 		for i in xrange(4):
 			for j in xrange(4):
+				# print board.board_status[4&block_x+i][4*block_y+j],
 				mapping_val = self.mapping[board.board_status[4*block_x+i][4*block_y+j]]
 					# Yes, the below line will help in the overall case
 								# row_weight += mapping_val * self.cell_weight			probably will only help in case of overall block
@@ -163,19 +177,24 @@ class Team4:
 				if (mapping_val == -1):
 					row_weight[i] = 0
 					col_weight[j] = 0
-				row_weight[i] *= 3
-				col_weight[j] *= 3
+				if (mapping_val != 0):
+					row_weight[i] *= 3
+					col_weight[j] *= 3
+			# print
 
 		# For checking how good diamond state is
 		diam_weight = [[0, 0], [0, 0]]
 		for i in xrange(2):
 			for j in xrange(2):
 				diam_weight[i][j] = self.cal_diam_weight(4*block_x + 1 + i, 4*block_y + 1 + j, board.board_status)
+				# print "diam_weight ", i, j, " is ", diam_weight[i][j]
 				ret += diam_weight[i][j]
 		for i in xrange(3):
+			# print "row_weight ", i, " is ", row_weight[i]
+			# print "col_weight ", i, " is ", col_weight[i]			
 			ret += row_weight[i]
 			ret += col_weight[i]
-
+		# print "blockx ", block_x, " block_y ", block_y, " perblock ", ret
 		return ret   
 
 
@@ -196,8 +215,9 @@ class Team4:
 				if (mapping_val == -1):
 					row_weight[i] = 0
 					col_weight[j] = 0
-				row_weight[i] *= 3
-				col_weight[j] *= 3
+				if (mapping_val != 0):
+					row_weight[i] *= 3
+					col_weight[j] *= 3
 
 		# For checking how good diamond state is
 		diam_weight = [[0, 0], [0, 0]]
@@ -208,4 +228,5 @@ class Team4:
 		for i in xrange(3):
 			ret += row_weight[i]
 			ret += col_weight[i]
+		# print "as a whole ", ret
 		return ret
