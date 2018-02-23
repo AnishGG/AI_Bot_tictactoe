@@ -184,8 +184,6 @@ class Team4:
 		# For checking how good a row/col is
 		row_weight = [10, 10, 10, 10]
 		col_weight = [10, 10, 10, 10]
-                adj_row    = [0, 0, 0, 0]
-                adj_col    = [0, 0, 0, 0]
 		for i in xrange(4):
 			for j in xrange(4):
 				mp = {}
@@ -198,14 +196,12 @@ class Team4:
 					# Yes, the below line will help in the overall case
 								# row_weight += mapping_val * self.cell_weight			probably will only help in case of overall block
 				if(row_weight[i] == 10):
-					row_weight[i] += mapping_val * 10 
+					row_weight[i] += mapping_val * 10
 				if(col_weight[j] == 10):
-					col_weight[j] += mapping_val * 10 
+					col_weight[j] += mapping_val * 10
 				if (mapping_val == -1):
 					row_weight[i] = 0
 					col_weight[j] = 0
-
-# Preferring more number of x's in a single line(row or column)
 				if (mapping_val != 0):
 					row_weight[i] *= 3
 					col_weight[j] *= 3
