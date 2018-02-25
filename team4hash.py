@@ -7,7 +7,7 @@ class Team4:
 
 	def __init__(self):
 		
-		self.hash_map = [dict() for i in xrange(16)]
+		self.hash_map = [dict() for i in xrange(101)]
 		self.hash_table = [[[0 for k in xrange(4)] for j in xrange(4*4)] for i in xrange(4*4)]  
 		self.time_limit = 15
 		self.max_depth = 100
@@ -52,12 +52,12 @@ class Team4:
 		board.board_status[ret_cell[0]][ret_cell[1]] = '-'
 		board.block_status = copy.deepcopy(tmp)
 		del tmp
-		for i in xrange(16):
+		for i in xrange(101):
 			self.hash_map[i].clear()
 		for i in xrange(1,self.max_depth+1):
 			self.depth = i
 			hash_val = self.compute_hash(board)
-			ret = self.alpha_beta(board, -INF, INF, 0, old_move, flag, hash_val)
+			ret = self.alpha_beta(board, -INF, INF, 0, old_move, flag, hash_val, 1)
 			if (ret[0] > ret_val):
 				ret_val = ret[0]
 				ret_cell = ret[1]
@@ -72,7 +72,7 @@ class Team4:
 		return ret_cell
 
 
-	def alpha_beta(self, board, alpha, beta, depth, old_move, flag, hash_val):
+	def alpha_beta(self, board, alpha, beta, depth, old_move, flag, hash_val, bonus):
 
 		# print "last move", old_move
 		available_cells = board.find_valid_move_cells(old_move)
@@ -88,6 +88,7 @@ class Team4:
 		if (flag == 'x'):
 			tmp = copy.deepcopy(board.block_status)
 			ans = -INF, available_cells[0]
+			tmp_alpha = alpha
 			ret = -INF, (0, 0)
 			for cell in available_cells:
 				hash_val ^= self.hash_table[cell[0]][cell[1]][self.index('-')]
@@ -102,7 +103,8 @@ class Team4:
 				if board.find_terminal_state()[0] == 'o':
 					board.board_status[cell[0]][cell[1]] = '-'
 					board.block_status = copy.deepcopy(tmp)
-					continue;
+					ans = -INF, cell
+					return ans
 				elif board.find_terminal_state()[0] == 'x':
 					board.board_status[cell[0]][cell[1]] = '-'
 					board.block_status = copy.deepcopy(tmp)
@@ -115,20 +117,25 @@ class Team4:
 						print "FOUND IN HASH_MAP"
 						ret = self.hash_map[depth][hash_val], cell
 					else:
-						ret1 = self.heuristic(board, old_move,'x')
-						board.board_status[cell[0]][cell[1]] = 'o'
+						ret = self.heuristic(board, old_move,'x'), cell
+###						board.board_status[cell[0]][cell[1]] = 'o'
 ##						print "checking if o move"
 ##						board.print_board()
-						ret2 = self.heuristic(board, old_move,'o')
-						board.board_status[cell[0]][cell[1]] = 'x'
-						ret = ret1 - ret2, cell
+###						ret2 = self.heuristic(board, old_move,'o')
+###						board.board_status[cell[0]][cell[1]] = 'x'
+###						ret = ret1 + ret2, cell
 						self.hash_map[depth][hash_val] = ret[0]
 ##					print "flag is ",flag
 ##					print ret
 					# board.print_board()
 					# print "ret is ", ret
 				elif (depth < self.depth):
-					ret = self.alpha_beta(board, alpha, beta, depth+1, cell, 'o', hash_val)
+					ok = self.check_subboard_full(board, cell, flag)
+					if (ok == 1 and bonus == 1):
+						ret = self.alpha_beta(board, tmp_alpha, beta, depth+1, cell, 'o', hash_val, 0)
+					else:
+						ret = self.alpha_beta(board, tmp_alpha, beta, depth+1, cell, 'x', hash_val, bonus)
+
 				board.board_status[cell[0]][cell[1]] = '-'
 				board.block_status = copy.deepcopy(tmp)
 				# print "--------------------------------------------------AFTER-----------------------------------------"
@@ -139,7 +146,7 @@ class Team4:
 					ans = ret[0], cell
 				if (ans[0] >= beta):
 					break
-				alpha = max(alpha, ans[0])
+				tmp_alpha = max(tmp_alpha, ans[0])
 			### print "ans is ", ans, " flag ", flag , " depth ", depth
 			del tmp
 			return ans
@@ -148,6 +155,7 @@ class Team4:
 			tmp = copy.deepcopy(board.block_status)
 			ans = INF, available_cells[0]
 			ret = INF, (0, 0)
+			tmp_beta = beta
 			for cell in available_cells:
 				hash_val ^= self.hash_table[cell[0]][cell[1]][self.index('-')]
 				hash_val ^= self.hash_table[cell[0]][cell[1]][self.index('o')]
@@ -161,11 +169,11 @@ class Team4:
 				if board.find_terminal_state()[0] == 'x':
 					board.board_status[cell[0]][cell[1]] = '-'
 					board.block_status = copy.deepcopy(tmp)
-					continue;
+					ans = INF, cell
 				elif board.find_terminal_state()[0] == 'o':
 					board.board_status[cell[0]][cell[1]] = '-'
 					board.block_status = copy.deepcopy(tmp)
-					ans = INF, cell
+					ans = -INF, cell
 					return ans
 				elif (depth >= self.depth and len(board.find_valid_move_cells(old_move)) > 0):
 ##					print "board state:"
@@ -174,13 +182,13 @@ class Team4:
 						print "FOUND IN HASH_MAP"
 						ret = self.hash_map[depth][hash_val], cell
 					else:
-						ret1 = self.heuristic(board, old_move,'o')
-						board.board_status[cell[0]][cell[1]] = 'x'
+						ret = self.heuristic(board, old_move,'x'), cell
+###						board.board_status[cell[0]][cell[1]] = 'x'
 ##						print "board checking if X move"
 ##						board.print_board()
-						ret2 = self.heuristic(board, old_move,'x')
-						board.board_status[cell[0]][cell[1]] = 'o'
-						ret = ret1 - ret2, cell
+###						ret2 = self.heuristic(board, old_move,'x')
+###						board.board_status[cell[0]][cell[1]] = 'o'
+###						ret = -(ret1 + ret2), cell
 						self.hash_map[depth][hash_val] = ret[0]					
 ##					print "flag is ", flag
 ##					print self.heuristic(board, old_move, 'o')
@@ -189,7 +197,12 @@ class Team4:
 						# board.print_board()
 					# print "ret is ", ret					
 				elif (depth < self.depth):
-					ret = self.alpha_beta(board, alpha, beta, depth+1, cell, 'x', hash_val)
+					ok = self.check_subboard_full(board, cell, flag)
+					if (ok == 1 and bonus == 1):
+						ret = self.alpha_beta(board, alpha, tmp_beta, depth+1, cell, 'o', hash_val, 0)
+					else:
+						ret = self.alpha_beta(board, alpha, tmp_beta, depth+1, cell, 'x', hash_val, bonus)
+
 				board.board_status[cell[0]][cell[1]] = '-'
 				board.block_status = copy.deepcopy(tmp)
 				# print "--------------------------------------------------AFTER-----------------------------------------"
@@ -199,10 +212,20 @@ class Team4:
 					ans = ret[0], cell
 				if (ans[0] <= alpha):
 					break
-				beta = min(beta, ans[0])
+				tmp_beta = min(tmp_beta, ans[0])
 			###print "ans is ", ans, " flag ", flag , " depth ", depth
 			del tmp
 			return ans
+
+	def check_subboard_full(self, board, cell, flag):
+		ok = 1
+		block_x = cell[0]//4 
+		block_y = cell[1]//4
+		for i in xrange(4):
+			for j in xrange(4):
+				if (board.board_status[block_x+i][block_y+j] != flag):
+					ok = 0
+		return ok
 
 	def heuristic(self, board, old_move, flag):
 		goodness = 0
@@ -236,13 +259,13 @@ class Team4:
 		# print "a b c d", a , b, c, d
 		diam_weight = 3
 		if (a == 1):
-			diam_weight *= 16
+			diam_weight *= 20
 		if (b == 1):
-			diam_weight *= 16
+			diam_weight *= 20
 		if (c == 1):
-			diam_weight *= 16
+			diam_weight *= 20
 		if (d == 1):
-			diam_weight *= 16
+			diam_weight *= 20
 		if(a == -1 or b == -1 or c == -1 or d == -1):
 			diam_weight = 0
 		if (diam_weight == 3):
